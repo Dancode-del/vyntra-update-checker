@@ -57,7 +57,7 @@ main{width:min(720px,100%)}.brand{display:flex;align-items:center;gap:12px;margi
    el('notes').innerHTML=(Array.isArray(m.whatsNew)&&m.whatsNew.length?m.whatsNew:['Release notes have not been added yet.']).map(x=>'<li>'+esc(x)+'</li>').join('');
    const downloads=Array.isArray(m.downloads)?m.downloads:[];
    let item=downloads.find(d=>(d.abi||'').toLowerCase()===abi)||downloads.find(d=>d.abi==='universal')||downloads[0];
-   if(item&&item.url){el('download').href=item.url;el('download').hidden=false}
+   if(item&&item.url&&m.verification==='verified'){el('download').href=item.url;el('download').hidden=false}
    const latest=Number.isInteger(m.latestVersionCode)?m.latestVersionCode:null;
    const updateAvailable=latest!==null&&installedCode!==null?latest>installedCode:(installedName&&m.latestVersionName?installedName!==m.latestVersionName:false);
    if(updateAvailable){el('status').textContent='An update is available';el('heading').textContent='A newer Vyntra is ready.';el('summary').textContent=m.message||'Download the latest release.'}
@@ -65,6 +65,7 @@ main{width:min(720px,100%)}.brand{display:flex;align-items:center;gap:12px;margi
    else{el('status').textContent='Latest release information loaded';el('heading').textContent='Vyntra '+(m.latestVersionName||'');el('summary').textContent=m.message||'See the latest official Vyntra release below.'}
    if(m.verification!=='verified')warn('Release integrity verification is not configured yet. This page is an information and download portal; it does not verify APK signatures or replace the app’s native security checks.');
    if(!item||!item.url)warn('No APK download is published in the update manifest yet. Open All releases to view published builds.');
+   else if(m.verification!=='verified')warn('Direct APK download is withheld until release verification is configured. Open All releases to review the published build.');
    if(abi&&!downloads.some(d=>(d.abi||'').toLowerCase()===abi)&&!downloads.some(d=>d.abi==='universal'))warn('No dedicated build was listed for ABI '+abi+'. Check All releases for available APKs.');
   }catch(error){el('status').textContent='Could not check for updates';el('heading').textContent='Update check unavailable';el('summary').textContent='The update service could not be reached. You can still view official releases.';el('status').classList.add('error');warn(error.message)}
  }
