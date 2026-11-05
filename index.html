@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0b12">
+<meta name="description" content="Check for the latest Vyntra Android release.">
+<title>Vyntra Updates</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0b12;--panel:#151520;--line:#ffffff18;--ink:#f5f3fb;--muted:#a6a3b3;--accent:#b99bff;--mint:#63e6c5;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 80% 0%,#7652b52b,transparent 42%),var(--bg);color:var(--ink);display:grid;place-items:center;padding:28px}
+main{width:min(720px,100%)}.brand{display:flex;align-items:center;gap:12px;margin-bottom:28px;font-size:19px;font-weight:850;letter-spacing:-.5px}.mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#d2c1ff,#8e70d9);display:grid;place-items:center;color:#20182e;font-weight:950;font-size:20px;box-shadow:0 8px 30px #a986ff33}
+.card{border:1px solid var(--line);border-radius:26px;background:linear-gradient(145deg,#191925f5,#111119f5);padding:clamp(22px,5vw,42px);box-shadow:0 28px 90px #0008}.eyebrow{font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:var(--accent);font-weight:850}.status{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px;margin:18px 0 8px}.dot{width:7px;height:7px;border-radius:50%;background:var(--mint)}h1{font-size:clamp(34px,7vw,52px);letter-spacing:-2px;line-height:1.02;margin:12px 0}p{color:var(--muted);line-height:1.7}.version{font-size:14px;color:var(--muted);margin:0 0 22px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 18px;border-radius:14px;text-decoration:none;font-weight:800;font-size:13px;background:var(--accent);color:#21172f}.button.alt{background:#ffffff0a;border:1px solid var(--line);color:var(--ink)}.button[hidden]{display:none}.section{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}.section h2{font-size:14px;margin:0 0 12px}.notes{padding-left:19px;color:#d5d2df;line-height:1.8;font-size:13px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.meta div{padding:13px;border:1px solid var(--line);border-radius:14px;background:#ffffff05}.meta small{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.meta strong{font-size:12px;overflow-wrap:anywhere}.warning{padding:13px 15px;border-radius:13px;background:#e5b45d12;border:1px solid #e5b45d38;color:#e8cc99;font-size:12px;line-height:1.6;margin-top:16px}.error{color:#ffb2b2}.footer{text-align:center;color:#777484;font-size:11px;margin-top:18px}.hidden{display:none!important}@media(max-width:520px){body{padding:16px}.meta{grid-template-columns:1fr}.card{border-radius:20px}}
+</style>
+</head>
+<body>
+<main>
+<div class="brand"><div class="mark">V</div><span>Vyntra <span style="color:#a6a3b3;font-weight:500">/ Updates</span></span></div>
+<section class="card" aria-live="polite">
+<div class="eyebrow">Official release channel</div>
+<div class="status"><span class="dot"></span><span id="status">Connecting to update service…</span></div>
+<h1 id="heading">Stay up to date.</h1>
+<p id="summary">Checking the latest Vyntra release information.</p>
+<p class="version" id="version"></p>
+<div class="actions">
+<a class="button" id="download" href="#" hidden>Download Vyntra</a>
+<a class="button alt" id="release" href="https://github.com/Dancode-del/vyntra/releases" target="_blank" rel="noopener">All releases</a>
+</div>
+<div class="section"><h2>What's new</h2><ul class="notes" id="notes"><li>Loading release notes…</li></ul></div>
+<div class="meta">
+<div><small>Release date</small><strong id="date">—</strong></div>
+<div><small>Installed version</small><strong id="installed">Not supplied</strong></div>
+</div>
+<div class="warning hidden" id="warning"></div>
+</section>
+<div class="footer">Vyntra Updates · Always install releases from the official Vyntra channel.</div>
+</main>
+<script>
+(() => {
+ const MANIFEST_URL='https://raw.githubusercontent.com/Dancode-del/vyntra-update/main/update.json';
+ const params=new URLSearchParams(location.search);
+ const installedCode=Number(params.get('versionCode'))||null;
+ const installedName=params.get('versionName')||'';
+ const abi=(params.get('abi')||'').toLowerCase();
+ const el=id=>document.getElementById(id);
+ el('installed').textContent=installedName ? installedName+(installedCode?' · '+installedCode:'') : 'Not supplied';
+ const warn=(message)=>{el('warning').textContent=message;el('warning').classList.remove('hidden')};
+ const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ async function start(){
+  try{
+   const response=await fetch(MANIFEST_URL,{cache:'no-store'});
+   if(!response.ok)throw new Error('Update manifest returned HTTP '+response.status);
+   const m=await response.json();
+   if(m.appId!=='com.vyntra.app')throw new Error('This manifest is not for the Vyntra Android app.');
+   el('date').textContent=m.releaseDate||'—';
+   el('version').textContent='Latest version '+(m.latestVersionName||'—')+(Number.isInteger(m.latestVersionCode)?' · build '+m.latestVersionCode:'');
+   el('notes').innerHTML=(Array.isArray(m.whatsNew)&&m.whatsNew.length?m.whatsNew:['Release notes have not been added yet.']).map(x=>'<li>'+esc(x)+'</li>').join('');
+   const downloads=Array.isArray(m.downloads)?m.downloads:[];
+   let item=downloads.find(d=>(d.abi||'').toLowerCase()===abi)||downloads.find(d=>d.abi==='universal')||downloads[0];
+   if(item&&item.url){el('download').href=item.url;el('download').hidden=false}
+   const latest=Number.isInteger(m.latestVersionCode)?m.latestVersionCode:null;
+   const updateAvailable=latest!==null&&installedCode!==null?latest>installedCode:(installedName&&m.latestVersionName?installedName!==m.latestVersionName:false);
+   if(updateAvailable){el('status').textContent='An update is available';el('heading').textContent='A newer Vyntra is ready.';el('summary').textContent=m.message||'Download the latest release.'}
+   else if(installedName&&m.latestVersionName&&installedName===m.latestVersionName){el('status').textContent='You’re up to date';el('heading').textContent='You have the latest version.';el('summary').textContent='You are already using Vyntra '+m.latestVersionName+'.'}
+   else{el('status').textContent='Latest release information loaded';el('heading').textContent='Vyntra '+(m.latestVersionName||'');el('summary').textContent=m.message||'See the latest official Vyntra release below.'}
+   if(m.verification!=='verified')warn('Release integrity verification is not configured yet. This page is an information and download portal; it does not verify APK signatures or replace the app’s native security checks.');
+   if(!item||!item.url)warn('No APK download is published in the update manifest yet. Open All releases to view published builds.');
+   if(abi&&!downloads.some(d=>(d.abi||'').toLowerCase()===abi)&&!downloads.some(d=>d.abi==='universal'))warn('No dedicated build was listed for ABI '+abi+'. Check All releases for available APKs.');
+  }catch(error){el('status').textContent='Could not check for updates';el('heading').textContent='Update check unavailable';el('summary').textContent='The update service could not be reached. You can still view official releases.';el('status').classList.add('error');warn(error.message)}
+ }
+ start();
+})();
+</script>
+</body>
+</html>
